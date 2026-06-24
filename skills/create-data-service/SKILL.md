@@ -48,9 +48,17 @@ Collect (ask only for what you can't infer from the user's brief; offer sensible
 | `default_port` | gateway port | `8090` |
 | `upstream_url` | (proxy only) upstream data plane URL | `http://127.0.0.1:5678` |
 | `network` | `arbitrum_sepolia` (testnet) \| `arbitrum_one` | `arbitrum_sepolia` |
+| `pricing` | emit a per-endpoint compute-unit pricing policy? | `false` |
+| `base_price_per_cu` | (if `pricing`) GRT wei per compute unit | `4000000000000` |
 
 Default to Arbitrum **Sepolia** — new services test on testnet first. Never invent a
 private key; the deploy script reads it from env.
+
+Set `pricing: true` when different endpoints should cost different amounts (a cheap
+status lookup vs. an expensive query). The generator then emits a `pricing.rs` (edit
+its `cu_cost` to match your endpoints) and a gateway `main.rs` that enforces it via
+horizon-core's `PricingPolicy` — underpaid receipts get HTTP 402. Without it, the
+gateway is the flat `horizon_core::run()` one-liner.
 
 ## Step 3 — Generate
 

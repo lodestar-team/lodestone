@@ -70,6 +70,33 @@ ABI is identical for every Horizon data service; `horizon-core`'s collector is f
   omit `tap.aggregator_url` to disable RAV aggregation.
 - For custom routes: `build_state()` → `spawn_background()` → `standard_router(state).route(...)`.
 
+## horizon-core extension points (added 2026-06-24)
+
+Beyond the flat `run(Config)` one-liner, horizon-core exposes hooks for services that
+need more. Use these when hand-extending a generated gateway:
+
+- **Per-endpoint pricing** — `pricing::PricingPolicy` (`FlatPricing` default,
+  `FnPricing(closure)`). Inject via `run_with(config, policy, extra_routes)` or
+  `AppState::with_pricing`. Enforced in the proxy + `proxy::gate_request`: underpaid
+  receipts → 402. lodestone emits this when `pricing: true` (see `pricing-overlay`).
+- **Composable router** — `router_with(state, extra: Router<AppState>)` merges custom
+  routes (e.g. a WebSocket relay) alongside the rate-limited proxy. `run_with` / `run_state`
+  serve them. Custom routes reuse the receipt pipeline via `proxy::gate_request(&state,
+  header, path)` (validate + price + persist; returns `ValidatedReceipt`).
+- **Pre-forward gate** — `gate::RequestGate` (async, `AllowAll` default) for consumer
+  credit limits, on-chain escrow pre-checks, allowlists. Inject via `AppState::with_gate`
+  then `run_state(state, extra)`. Return `GateRejection` to deny.
+- **Multi-backend routing** — `backend::BackendResolver` (`SingleBackend` default,
+  `FnBackend(closure)`) routes to different upstreams by path (e.g. per-chain RPC). Inject
+  via `AppState::with_backend`. The proxy 404s on an unroutable path.
+- **Custom state composition** — `build_state(config).await?.with_pricing(..).with_gate(..)
+  .with_backend(..)` then `run_state(state, extra_routes)`.
+
+These are the features the legacy-fleet dogfooding (camp/seahorn/wsaas ports) surfaced.
+A WebSocket service = composable router + a `/ws/...` route that calls `gate_request`
+(see the wsaas reference). A credit/escrow-gated RPC service = a `RequestGate` +
+`BackendResolver`. drpc's full JSON-RPC/attestation logic stays bespoke — don't force it.
+
 ## pipeline archetype notes
 
 - Pure `Handler`s: deterministic, I/O-free, same event → same `ChangeSet`. All I/O is in the `Sink`.

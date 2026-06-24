@@ -93,6 +93,8 @@ def make_subs(ans: dict) -> dict:
         "service_name": name,
         "service_title": ans.get("service_title", f"{name} Data Service"),
         "service_description": ans["service_description"],
+        "pricing": bool(ans.get("pricing", False)),
+        "base_price_per_cu": str(ans.get("base_price_per_cu", "4000000000000")),
         "min_provision": str(ans.get("min_provision", "555e18")),
         "burn_cut_ppm": str(ans.get("burn_cut_ppm", "10000")),
         "data_service_cut_ppm": str(ans.get("data_service_cut_ppm", "10000")),
@@ -157,9 +159,15 @@ def main() -> None:
     render_tree(TEMPLATES / "common", out, subs, written)
     render_tree(TEMPLATES / "contracts", out / "contracts", subs, written)
     render_tree(TEMPLATES / subs["archetype"], out, subs, written)
+    # Optional: overlay a per-endpoint pricing policy onto the gateway crate.
+    # Overwrites the gateway's main.rs + Cargo.toml and adds pricing.rs.
+    if subs["pricing"]:
+        render_tree(TEMPLATES / "pricing-overlay", out, subs, written)
 
-    print(f"Lodestone — forged {subs['service_title']} ({subs['network']}, {subs['archetype']}) at {out}\n")
-    for p in sorted(written):
+    written = sorted(set(written))
+    priced = " +pricing" if subs["pricing"] else ""
+    print(f"Lodestone — forged {subs['service_title']} ({subs['network']}, {subs['archetype']}{priced}) at {out}\n")
+    for p in written:
         print(f"  {p.relative_to(out)}")
     print(f"\n{len(written)} files. Next: vendor contract libs, fill .env + gateway.toml, "
           f"`forge build && forge test`, `cargo build`. See README.md.")
