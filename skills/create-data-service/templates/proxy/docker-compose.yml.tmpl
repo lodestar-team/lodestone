@@ -1,0 +1,32 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER:     {{service_slug}}
+      POSTGRES_PASSWORD: {{service_slug}}
+      POSTGRES_DB:       {{service_slug}}_gateway
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U {{service_slug}}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  {{service_slug}}-gateway:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      GATEWAY_CONFIG: /app/config.toml
+      RUST_LOG:       {{service_slug}}_gateway=info,horizon_core=info
+    volumes:
+      - ./gateway.toml:/app/config.toml:ro
+    ports:
+      - "{{default_port}}:{{default_port}}"
+
+volumes:
+  pgdata:

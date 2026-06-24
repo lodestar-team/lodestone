@@ -1,0 +1,44 @@
+# {{service_title}} gateway configuration.
+# Copy to gateway.toml and fill in real values. Load path via $GATEWAY_CONFIG.
+
+[server]
+host = "0.0.0.0"
+port = {{default_port}}
+
+[indexer]
+# This provider's on-chain address (the registered service provider).
+service_provider_address = "0x0000000000000000000000000000000000000000"
+# Hex 32-byte operator key used to sign collect() transactions. Keep secret.
+operator_private_key = "0x0000000000000000000000000000000000000000000000000000000000000000"
+
+[tap]
+# {{service_name}}DataService proxy address (set after deployment).
+data_service_address = "0x0000000000000000000000000000000000000000"
+# Consumer addresses authorised to issue TAP receipts. Empty = accept any valid signer.
+authorized_senders = []
+# GraphTallyCollector domain — defaults for {{network}}.
+eip712_domain_name = "GraphTallyCollector"
+eip712_chain_id = {{eip712_chain_id}}
+eip712_verifying_contract = "{{graph_tally_collector}}"
+# Reject receipts older than this (ns). Default 30s.
+max_receipt_age_ns = 30000000000
+# TAP aggregator base URL (its /rav/aggregate endpoint). Omit to disable aggregation.
+# aggregator_url = "http://localhost:7610"
+aggregation_interval_secs = 60
+
+[backend]
+# The upstream data plane the gateway TAP-gates and proxies to.
+upstream_url = "{{upstream_url}}"
+
+[database]
+url = "postgres://{{service_slug}}:{{service_slug}}@localhost:5432/{{service_slug}}_gateway"
+
+# On-chain RAV collection (omit the whole section to disable).
+[collector]
+arbitrum_rpc_url = "{{arbitrum_rpc_default}}"
+collect_interval_secs = 3600
+min_collect_value = "0"
+
+[rate_limit]
+requests_per_second = 20
+burst_size = 40

@@ -1,0 +1,15 @@
+# Multi-stage build for the {{service_title}} gateway.
+FROM rust:slim-bookworm AS builder
+WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    pkg-config libssl-dev ca-certificates git && rm -rf /var/lib/apt/lists/*
+COPY . .
+RUN cargo build --release --bin {{service_slug}}-gateway
+
+FROM debian:bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates && rm -rf /var/lib/apt/lists/*
+COPY --from=builder /app/target/release/{{service_slug}}-gateway /usr/local/bin/{{service_slug}}-gateway
+ENV GATEWAY_CONFIG=/app/config.toml
+EXPOSE {{default_port}}
+ENTRYPOINT ["{{service_slug}}-gateway"]
