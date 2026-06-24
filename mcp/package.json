@@ -1,0 +1,23 @@
+{
+  "name": "horizon-ds-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for operating Graph Horizon data services — read economics, provider status, escrow balance, tokens collected, gateway health; optional on-chain provider lifecycle.",
+  "type": "module",
+  "bin": {
+    "horizon-ds-mcp": "server.mjs"
+  },
+  "files": [
+    "server.mjs",
+    "README.md"
+  ],
+  "keywords": ["mcp", "model-context-protocol", "the-graph", "horizon", "data-service", "tap", "graphtally", "arbitrum"],
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "viem": "^2.21.0",
+    "zod": "^3.25.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

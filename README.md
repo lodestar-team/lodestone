@@ -66,6 +66,15 @@ skills/create-data-service/
     contracts/              the Solidity contract, interface, deploy script, test
     proxy/                  proxy-archetype gateway, config, Docker, README
     pipeline/               pipeline-archetype core + indexer + gateway, config, Docker, README
+    pricing-overlay/        optional per-endpoint pricing module + run_with gateway main
+mcp/                        horizon-ds-mcp — MCP server for OPERATING deployed services
 ```
+
+## Operating what you generate — `horizon-ds-mcp`
+
+The [`mcp/`](mcp/) directory is a companion Model Context Protocol server for *operating*
+deployed data services: read a contract's economics, a provider's status, a consumer's
+escrow balance, on-chain `tokensCollected`, and gateway health — plus an opt-in on-chain
+provider lifecycle (register / start / stop). Read-only by default. See [mcp/README.md](mcp/README.md).
 
 Apache-2.0. Experimental community tooling; not affiliated with The Graph Foundation.
